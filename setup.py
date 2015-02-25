@@ -34,7 +34,7 @@ setuptools.setup(
             'ip.floating.transmit.bytes = ceilometer_plugin_contrail.network.statistics.floatingip:FloatingIPPollsterTransmitBytes',
         ],
         'network.statistics.drivers' : [
-            'opencontrail = ceilometer_plugin_contrail.network.statistics.opencontrail.driver:OpenContrailDriver'
+            'contrail = ceilometer_plugin_contrail.network.statistics.contrail.driver:ContrailDriver'
         ],
     },
 )

@@ -10,9 +10,9 @@ sources = [
     'ceilometer_plugin_contrail/network/__init__.py',
     'ceilometer_plugin_contrail/network/statistics/__init__.py',
     'ceilometer_plugin_contrail/network/statistics/floatingip.py',
-    'ceilometer_plugin_contrail/network/statistics/opencontrail/__init__.py',
-    'ceilometer_plugin_contrail/network/statistics/opencontrail/client.py',
-    'ceilometer_plugin_contrail/network/statistics/opencontrail/driver.py',
+    'ceilometer_plugin_contrail/network/statistics/contrail/__init__.py',
+    'ceilometer_plugin_contrail/network/statistics/contrail/client.py',
+    'ceilometer_plugin_contrail/network/statistics/contrail/driver.py',
     'requirements.txt',
     'setup.py',
 ]
