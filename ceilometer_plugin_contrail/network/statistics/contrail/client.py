@@ -23,6 +23,7 @@ from ceilometer.openstack.common.gettextutils import _  # noqa
 from ceilometer.openstack.common import log
 
 CONF = cfg.CONF
+CONF.import_opt('http_timeout', 'ceilometer.service')
 
 LOG = log.getLogger(__name__)
 
@@ -66,7 +67,7 @@ class AnalyticsAPIBaseClient(object):
             },
             'data': data,
             'allow_redirects': False,
-            'timeout': 600,
+            'timeout': CONF.http_timeout,
         }
 
         return req_params

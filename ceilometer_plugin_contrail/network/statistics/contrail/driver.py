@@ -13,15 +13,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import re
-import six
-from six import moves
-from six.moves.urllib import parse as url_parse
+from oslo.utils import timeutils
+from six.moves.urllib import parse as urlparse
 
 from ceilometer.network.statistics import driver
 from ceilometer_plugin_contrail.network.statistics.contrail import client
-from ceilometer.openstack.common import timeutils
-from ceilometer_plugin_contrail import neutron_client
+from ceilometer import neutron_client
 
 class ContrailDriver(driver.Driver):
     """Driver of network analytics for Contrail.
@@ -89,25 +86,27 @@ class ContrailDriver(driver.Driver):
 
     def _get_ip_floating_sample_data(self, meter_name, parse_url, params,
                                      cache):
-        parts = url_parse.ParseResult(params.get('scheme', ['http'])[0],
+        parts = urlparse.ParseResult(params.get('scheme', ['http'])[0],
                                      parse_url.netloc,
                                      parse_url.path,
                                      None,
                                      None,
                                      None)
-        endpoint = url_parse.urlunparse(parts)
+        endpoint = urlparse.urlunparse(parts)
         extractor = self._get_extractor(meter_name)
         if extractor is None:
             return
         data = self._prepare_cache(endpoint, params, cache)
 
-        floatingips = data['n_client'].floatingip_get_all()
+        resp = data['n_client'].client.list_floatingips()
+        floatingips = resp.get('floatingips')
         port_floatingip_map = \
             dict((floatingip['port_id'], floatingip) for floatingip in \
                     floatingips if floatingip['port_id'] is not None and \
                     floatingip['floating_ip_address'] is not None)
         for port_id in port_floatingip_map:
-            port_info = data['n_client'].port_get(port_id)
+            resp = data['n_client'].client.show_port(port_id)
+            port_info = resp.get('port')
             if port_info is None:
                 continue
             if 'device_id' not in port_info:

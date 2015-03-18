@@ -6,7 +6,6 @@ env = DefaultEnvironment().Clone()
 
 sources = [
     'ceilometer_plugin_contrail/__init__.py',
-    'ceilometer_plugin_contrail/neutron_client.py',
     'ceilometer_plugin_contrail/network/__init__.py',
     'ceilometer_plugin_contrail/network/statistics/__init__.py',
     'ceilometer_plugin_contrail/network/statistics/floatingip.py',
