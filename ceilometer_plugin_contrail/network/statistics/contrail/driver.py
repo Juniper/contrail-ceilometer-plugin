@@ -107,22 +107,25 @@ class ContrailDriver(driver.Driver):
         for port_id in port_floatingip_map:
             resp = data['n_client'].client.show_port(port_id)
             port_info = resp.get('port')
-            if port_info is None:
-                continue
-            if 'device_id' not in port_info:
+            if port_info is None or 'device_id' not in port_info:
                 continue
             vm_fqdn_uuid = port_info['device_id']
-            vm_statistics = \
-                data['o_client'].networks.get_vm_statistics(vm_fqdn_uuid)
-            if vm_statistics is None:
+            vm_interfaces = \
+                data['o_client'].networks.get_vm_interfaces(vm_fqdn_uuid)
+            if vm_interfaces is None:
                 continue
-            timestamp = timeutils.utcnow().isoformat()
-            floatingip_info = port_floatingip_map[port_id]
-            for sample in \
-                self._get_floatingip_sample(extractor, port_info,
-                    floatingip_info, vm_statistics):
-                if sample is not None:
-                    yield sample + (timestamp,)
+            for vmi_fqdn_uuid in vm_interfaces:
+                vmi_fip_stats = \
+                    data['o_client'].networks.get_vmi_fip_stats(vmi_fqdn_uuid)
+                if vmi_fip_stats is None:
+                    continue
+                timestamp = timeutils.utcnow().isoformat()
+                floatingip_info = port_floatingip_map[port_id]
+                for sample in \
+                    self._get_floatingip_sample(extractor, port_info,
+                        floatingip_info, vmi_fip_stats):
+                    if sample is not None:
+                        yield sample + (timestamp,)
 
     @staticmethod
     def _get_floatingip_resource_meta(floatingip_info, port_info):
@@ -132,19 +135,16 @@ class ContrailDriver(driver.Driver):
         return resource_meta
 
     def _get_floatingip_sample(self, extractor, port_info,
-                               floatingip_info, vm_statistics):
-        stats = vm_statistics['UveVirtualMachineAgent'].get('fip_stats_list',
-                    [])
-        if type(stats) is list:
-            for stat in stats:
-                if 'ip_address' in stat and \
-                        stat['ip_address'] == \
-                        floatingip_info['floating_ip_address']:
-                    rid = floatingip_info['id']
-                    resource_meta = \
-                        ContrailDriver._get_floatingip_resource_meta(
-                            floatingip_info, port_info)
-                    yield extractor(stat, rid, resource_meta)
+                               floatingip_info, vmi_fip_stats):
+        for stat in vmi_fip_stats:
+            if 'ip_address' in stat and \
+                    stat['ip_address'] == \
+                    floatingip_info['floating_ip_address']:
+                rid = floatingip_info['id']
+                resource_meta = \
+                    ContrailDriver._get_floatingip_resource_meta(
+                        floatingip_info, port_info)
+                yield extractor(stat, rid, resource_meta)
 
     @staticmethod
     def _ip_floating_receive_packets(statistic, resource_id, resource_meta):

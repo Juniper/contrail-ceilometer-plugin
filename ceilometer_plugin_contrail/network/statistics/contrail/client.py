@@ -39,16 +39,16 @@ class AnalyticsAPIBaseClient(object):
         self.endpoint = endpoint
         self.data = data or {}
 
-    def request(self, path, fqdn_uuid, flat=True, data=None):
+    def request(self, path, fqdn_uuid, query=None, data=None):
         req_data = copy.copy(self.data)
         if data:
             req_data.update(data)
 
         req_params = self._get_req_params(data=req_data)
 
-        if flat:
-            fqdn_uuid = fqdn_uuid + '?flat'
-        url = urlparse.urljoin(self.endpoint, path + fqdn_uuid)
+        if query:
+            query_string = '?' + query
+        url = urlparse.urljoin(self.endpoint, path + fqdn_uuid + query_string)
         self._log_req(url, req_params)
         resp = requests.get(url, **req_params)
         self._log_res(resp)
@@ -110,18 +110,37 @@ class AnalyticsAPIBaseClient(object):
 class NetworksAPIClient(AnalyticsAPIBaseClient):
     """Opencontrail Statistics REST API Client."""
 
-    def get_vm_statistics(self, fqdn_uuid, data=None):
-        """Get statistics of a virtual-machines.
-
+    def get_vm_interfaces(self, fqdn_uuid, data=None):
+        """Get interfaces of a virtual machine.
         URL:
-            {endpoint}/analytics/uves/virtual-machine/{fqdn_uuid}
+            {endpoint}/analytics/uves/virtual-machine/{fqdn_uuid}?
+            cfilt=UveVirtualMachineAgent:interface_list
         """
-
         path = '/analytics/uves/virtual-machine/'
-        resp = self.request(path, fqdn_uuid, flat=True, data=data)
+        qstring = 'cfilt=UveVirtualMachineAgent:interface_list'
+        resp = self.request(path, fqdn_uuid, query=qstring, data=data)
+        rdict = resp.json()
+        if (not rdict or not isinstance(rdict, dict) or
+                'UveVirtualMachineAgent' not in rdict):
+            return None
+        return rdict['UveVirtualMachineAgent'].get('interface_list', None)
+    #end get_vm_interfaces
 
-        return resp.json()
-
+    def get_vmi_fip_stats(self, fqdn_uuid, data=None):
+        """Get floating IP statistics of a virtual machine interface.
+        URL:
+            {endpoint}/analytics/uves/virtual-machine-interface/{fqdn_uuid}?
+            cfilt=UveVMInterfaceAgent:fip_agg_stats
+        """
+        path = '/analytics/uves/virtual-machine-interface/'
+        qstring = 'cfilt=UveVMInterfaceAgent:fip_agg_stats'
+        resp = self.request(path, fqdn_uuid, query=qstring, data=data)
+        rdict = resp.json()
+        if (not rdict or not isinstance(rdict, dict) or
+                'UveVMInterfaceAgent' not in rdict):
+            return None
+        return rdict['UveVMInterfaceAgent'].get('fip_agg_stats', None)
+    #end get_vmi_fip_stats
 
 class Client(object):
 
