@@ -19,7 +19,7 @@ import requests
 import six
 from six.moves.urllib import parse as urlparse
 
-from ceilometer.openstack.common.gettextutils import _  # noqa
+from ceilometer.i18n import _  # noqa
 from ceilometer.openstack.common import log
 
 CONF = cfg.CONF
