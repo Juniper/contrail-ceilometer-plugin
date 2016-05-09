@@ -14,7 +14,7 @@
 
 import copy
 
-from oslo.config import cfg
+from oslo_config import cfg
 import requests
 import six
 from six.moves.urllib import parse as urlparse
