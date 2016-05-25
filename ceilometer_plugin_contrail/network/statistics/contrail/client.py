@@ -20,7 +20,7 @@ import six
 from six.moves.urllib import parse as urlparse
 
 from ceilometer.i18n import _  # noqa
-from ceilometer.openstack.common import log
+from oslo_log import log
 
 CONF = cfg.CONF
 CONF.import_opt('http_timeout', 'ceilometer.service')
