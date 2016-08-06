@@ -19,6 +19,8 @@ from six.moves.urllib import parse as urlparse
 from ceilometer.network.statistics import driver
 from ceilometer_plugin_contrail.network.statistics.contrail import client
 from ceilometer import neutron_client
+from ceilometer import keystone_client
+
 
 class ContrailDriver(driver.Driver):
     """Driver of network analytics for Contrail.
@@ -65,7 +67,8 @@ class ContrailDriver(driver.Driver):
 
         data = {
             'o_client': client.Client(endpoint),
-            'n_client': neutron_client.Client()
+            'n_client': neutron_client.Client(),
+            'ks_client': keystone_client.get_client()
         }
 
         cache['network.statistics.contrail'] = data
@@ -111,12 +114,14 @@ class ContrailDriver(driver.Driver):
                 continue
             vm_fqdn_uuid = port_info['device_id']
             vm_interfaces = \
-                data['o_client'].networks.get_vm_interfaces(vm_fqdn_uuid)
+                data['o_client'].networks.get_vm_interfaces(vm_fqdn_uuid,
+                    token=data['ks_client'].auth_token)
             if vm_interfaces is None:
                 continue
             for vmi_fqdn_uuid in vm_interfaces:
                 vmi_fip_stats = \
-                    data['o_client'].networks.get_vmi_fip_stats(vmi_fqdn_uuid)
+                    data['o_client'].networks.get_vmi_fip_stats(vmi_fqdn_uuid,
+                        token=data['ks_client'].auth_token)
                 if vmi_fip_stats is None:
                     continue
                 timestamp = timeutils.utcnow().isoformat()
