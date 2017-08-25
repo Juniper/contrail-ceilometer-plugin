@@ -113,6 +113,8 @@ class ContrailDriver(driver.Driver):
             if port_info is None or 'device_id' not in port_info:
                 continue
             vm_fqdn_uuid = port_info['device_id']
+            if not vm_fqdn_uuid:
+                continue
             vm_interfaces = \
                 data['o_client'].networks.get_vm_interfaces(vm_fqdn_uuid,
                     token=keystone_client.get_auth_token(data['ks_client']))
